@@ -45,7 +45,7 @@ npm run deploy
 After deployment, point your MCP client at:
 
 ```text
-https://hn-updates-mcp.<your-subdomain>.workers.dev/mcp
+https://news.matchaonmuffins.dev/mcp
 ```
 
 For a local MCP client config that supports remote Streamable HTTP servers:
@@ -54,7 +54,7 @@ For a local MCP client config that supports remote Streamable HTTP servers:
 {
   "mcpServers": {
     "hn-updates": {
-      "url": "https://hn-updates-mcp.<your-subdomain>.workers.dev/mcp"
+      "url": "https://news.matchaonmuffins.dev/mcp"
     }
   }
 }
