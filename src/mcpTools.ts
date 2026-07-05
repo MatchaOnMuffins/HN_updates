@@ -1,6 +1,12 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
+import type { Env } from "./env.js";
+import {
+  fetchNews,
+  fetchNewsInputSchema,
+  formatFeedSections
+} from "./feeds.js";
 import {
   DEFAULT_LIMIT,
   MAX_COMMENT_DEPTH,
@@ -38,17 +44,51 @@ function textResult(text: string, structuredContent: Record<string, unknown>): T
   };
 }
 
-async function safeTool(handler: () => Promise<ToolResult>): Promise<ToolResult> {
+async function safeTool(handler: () => Promise<ToolResult>, label = "Hacker News request"): Promise<ToolResult> {
   try {
     return await handler();
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
 
     return {
-      content: [{ type: "text", text: `Hacker News request failed: ${message}` }],
+      content: [{ type: "text", text: `${label} failed: ${message}` }],
       isError: true
     };
   }
+}
+
+export function registerNewsTools(server: McpServer, env: Env): void {
+  server.tool(
+    "fetch_news",
+    "Fetch and combine news from Hacker News, TechCrunch, Lobsters, bioRxiv, and custom RSS feeds.",
+    {
+      sources: fetchNewsInputSchema.shape.sources,
+      rss_urls: fetchNewsInputSchema.shape.rss_urls,
+      limit: fetchNewsInputSchema.shape.limit,
+      offset: fetchNewsInputSchema.shape.offset,
+      query: fetchNewsInputSchema.shape.query,
+      domain: fetchNewsInputSchema.shape.domain
+    },
+    ({ sources, rss_urls, limit, offset, query, domain }) =>
+      safeTool(async () => {
+        const result = await fetchNews(
+          {
+            sources,
+            rssUrls: rss_urls,
+            limit,
+            offset,
+            query,
+            domain
+          },
+          env.NEWS_CACHE
+        );
+
+        return textResult(formatFeedSections(result.items, result.sources), {
+          source: "multi-source-news",
+          ...result
+        });
+      }, "News request")
+  );
 }
 
 export function registerHackerNewsTools(server: McpServer): void {

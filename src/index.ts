@@ -1,24 +1,19 @@
 import { createMcpHandler } from "agents/mcp";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-import { registerHackerNewsTools } from "./mcpTools.js";
+import type { Env } from "./env.js";
+import { registerHackerNewsTools, registerNewsTools } from "./mcpTools.js";
+import { handleNewsRequest, handleRootRequest, handleSourcesRequest } from "./routes.js";
 
-type Env = Record<string, never>;
+export type { Env } from "./env.js";
 
-const TOOL_NAMES = [
-  "get_hackernews_stories",
-  "get_hackernews_item",
-  "get_hackernews_comments",
-  "search_hackernews",
-  "get_hackernews_top_50"
-];
-
-function createServer(): McpServer {
+function createServer(env: Env): McpServer {
   const server = new McpServer({
-    name: "hn-updates",
-    version: "1.1.0"
+    name: "news-updates",
+    version: "2.0.0"
   });
 
+  registerNewsTools(server, env);
   registerHackerNewsTools(server);
 
   return server;
@@ -29,14 +24,18 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/" && request.method === "GET") {
-      return Response.json({
-        name: "hn-updates",
-        mcp: "/mcp",
-        tools: TOOL_NAMES
-      });
+      return handleRootRequest();
     }
 
-    const server = createServer();
+    if (url.pathname === "/sources" && request.method === "GET") {
+      return handleSourcesRequest();
+    }
+
+    if (url.pathname === "/news" && request.method === "GET") {
+      return handleNewsRequest(request, env);
+    }
+
+    const server = createServer(env);
     return createMcpHandler(server, { route: "/mcp" })(request, env, ctx);
   }
 } satisfies ExportedHandler<Env>;
