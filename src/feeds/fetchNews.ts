@@ -1,47 +1,28 @@
 import { createRssAdapter } from "./adapters/rss.js";
-import { buildCacheKey, withCache } from "./cache.js";
 import { DEFAULT_NEWS_LIMIT } from "./constants.js";
 import { getBuiltinAdapter, resolveRequestedSources } from "./sources.js";
 import type { FetchNewsOptions, FetchNewsResult, FeedFetchResult, NewsSourceId } from "./types.js";
 import { combineFeedItems } from "./utils.js";
 
-function buildFetchCacheKey(source: string, options: FetchNewsOptions): string {
-  return buildCacheKey([
-    "news",
-    source,
-    String(options.limit ?? DEFAULT_NEWS_LIMIT),
-    String(options.offset ?? 0),
-    options.query ?? "",
-    options.domain ?? ""
-  ]);
-}
-
 async function fetchSourceFeed(
   source: NewsSourceId,
   options: FetchNewsOptions,
-  kv?: KVNamespace,
   rssUrl?: string
-): Promise<{ feed: FeedFetchResult; cached: boolean }> {
+): Promise<FeedFetchResult> {
   const adapter = source === "rss" && rssUrl ? createRssAdapter(rssUrl) : getBuiltinAdapter(source);
-  const cacheKey = buildFetchCacheKey(rssUrl ? `rss:${rssUrl}` : source, options);
 
-  const { data, cached } = await withCache(kv, cacheKey, () =>
-    adapter.fetch({
-      limit: options.limit ?? DEFAULT_NEWS_LIMIT,
-      offset: options.offset ?? 0,
-      query: options.query,
-      domain: options.domain,
-      rssUrl
-    })
-  );
-
-  return { feed: data, cached };
+  return adapter.fetch({
+    limit: options.limit ?? DEFAULT_NEWS_LIMIT,
+    offset: options.offset ?? 0,
+    query: options.query,
+    domain: options.domain,
+    rssUrl
+  });
 }
 
-export async function fetchNews(options: FetchNewsOptions = {}, kv?: KVNamespace): Promise<FetchNewsResult & { cacheHits: string[] }> {
+export async function fetchNews(options: FetchNewsOptions = {}): Promise<FetchNewsResult> {
   const sources = resolveRequestedSources(options.sources);
   const rssUrls = options.rssUrls ?? [];
-  const cacheHits: string[] = [];
   const feeds: FeedFetchResult[] = [];
 
   for (const source of sources) {
@@ -51,29 +32,17 @@ export async function fetchNews(options: FetchNewsOptions = {}, kv?: KVNamespace
       }
 
       for (const rssUrl of rssUrls) {
-        const { feed, cached } = await fetchSourceFeed("rss", options, kv, rssUrl);
-        feeds.push(feed);
-        if (cached) {
-          cacheHits.push(`rss:${rssUrl}`);
-        }
+        feeds.push(await fetchSourceFeed("rss", options, rssUrl));
       }
       continue;
     }
 
-    const { feed, cached } = await fetchSourceFeed(source, options, kv);
-    feeds.push(feed);
-    if (cached) {
-      cacheHits.push(source);
-    }
+    feeds.push(await fetchSourceFeed(source, options));
   }
 
   if (!sources.includes("rss") && rssUrls.length > 0) {
     for (const rssUrl of rssUrls) {
-      const { feed, cached } = await fetchSourceFeed("rss", options, kv, rssUrl);
-      feeds.push(feed);
-      if (cached) {
-        cacheHits.push(`rss:${rssUrl}`);
-      }
+      feeds.push(await fetchSourceFeed("rss", options, rssUrl));
     }
   }
 
@@ -84,7 +53,6 @@ export async function fetchNews(options: FetchNewsOptions = {}, kv?: KVNamespace
     sources: feeds.map((feed) => feed.source),
     count: items.length,
     feeds,
-    items,
-    cacheHits
+    items
   };
 }

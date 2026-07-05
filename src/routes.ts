@@ -1,5 +1,4 @@
 import { fetchNews, fetchNewsInputSchema, listAvailableSources } from "./feeds.js";
-import type { Env } from "./env.js";
 
 function parseSourcesParam(value: string | null): string[] | undefined {
   if (!value) {
@@ -34,7 +33,7 @@ export async function handleSourcesRequest(): Promise<Response> {
   });
 }
 
-export async function handleNewsRequest(request: Request, env: Env): Promise<Response> {
+export async function handleNewsRequest(request: Request): Promise<Response> {
   const url = new URL(request.url);
 
   try {
@@ -47,17 +46,14 @@ export async function handleNewsRequest(request: Request, env: Env): Promise<Res
       domain: url.searchParams.get("domain") ?? undefined
     });
 
-    const result = await fetchNews(
-      {
-        sources: parsed.sources,
-        rssUrls: parsed.rss_urls,
-        limit: parsed.limit,
-        offset: parsed.offset,
-        query: parsed.query,
-        domain: parsed.domain
-      },
-      env.NEWS_CACHE
-    );
+    const result = await fetchNews({
+      sources: parsed.sources,
+      rssUrls: parsed.rss_urls,
+      limit: parsed.limit,
+      offset: parsed.offset,
+      query: parsed.query,
+      domain: parsed.domain
+    });
 
     return Response.json(result);
   } catch (error) {

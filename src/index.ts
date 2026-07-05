@@ -1,19 +1,18 @@
 import { createMcpHandler } from "agents/mcp";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-import type { Env } from "./env.js";
 import { registerHackerNewsTools, registerNewsTools } from "./mcpTools.js";
 import { handleNewsRequest, handleRootRequest, handleSourcesRequest } from "./routes.js";
 
-export type { Env } from "./env.js";
+type Env = Record<string, never>;
 
-function createServer(env: Env): McpServer {
+function createServer(): McpServer {
   const server = new McpServer({
     name: "news-updates",
     version: "2.0.0"
   });
 
-  registerNewsTools(server, env);
+  registerNewsTools(server);
   registerHackerNewsTools(server);
 
   return server;
@@ -32,10 +31,10 @@ export default {
     }
 
     if (url.pathname === "/news" && request.method === "GET") {
-      return handleNewsRequest(request, env);
+      return handleNewsRequest(request);
     }
 
-    const server = createServer(env);
+    const server = createServer();
     return createMcpHandler(server, { route: "/mcp" })(request, env, ctx);
   }
 } satisfies ExportedHandler<Env>;

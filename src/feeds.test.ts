@@ -7,11 +7,10 @@ import {
   fetchNews,
   listAvailableSources,
   parseRssXml,
-  resolveRequestedSources,
-  withCache
+  resolveRequestedSources
 } from "./feeds.js";
 import { handleNewsRequest, handleSourcesRequest } from "./routes.js";
-import { createMemoryKv, installFetchMock } from "./testUtils.js";
+import { installFetchMock } from "./testUtils.js";
 
 const HN_API_BASE = "https://hacker-news.firebaseio.com/v0";
 
@@ -179,33 +178,6 @@ describe("fetchNews", () => {
   });
 });
 
-describe("withCache", () => {
-  it("returns cached data on subsequent reads and tracks cache hits", async () => {
-    const kv = createMemoryKv();
-    const fetcher = vi.fn(async () => ({ value: "fresh" }));
-
-    const first = await withCache(kv, "news:test", fetcher);
-    const second = await withCache(kv, "news:test", fetcher);
-
-    expect(first).toEqual({ data: { value: "fresh" }, cached: false });
-    expect(second).toEqual({ data: { value: "fresh" }, cached: true });
-    expect(fetcher).toHaveBeenCalledTimes(1);
-  });
-
-  it("uses KV when fetchNews is called twice for the same source", async () => {
-    installNewsFetchMock();
-    const kv = createMemoryKv();
-    const fetchMock = vi.mocked(globalThis.fetch);
-
-    const first = await fetchNews({ sources: ["lobsters"], limit: 1 }, kv);
-    const second = await fetchNews({ sources: ["lobsters"], limit: 1 }, kv);
-
-    expect(first.cacheHits).toEqual([]);
-    expect(second.cacheHits).toEqual(["lobsters"]);
-    expect(fetchMock.mock.calls.filter(([url]) => String(url) === LOBSTERS_HOTTEST_URL)).toHaveLength(1);
-  });
-});
-
 describe("listAvailableSources", () => {
   it("includes all built-in and custom RSS sources", () => {
     const sources = listAvailableSources();
@@ -237,8 +209,7 @@ describe("GET /news", () => {
     installNewsFetchMock();
 
     const response = await handleNewsRequest(
-      new Request("https://example.com/news?sources=hn,lobsters&limit=1"),
-      {}
+      new Request("https://example.com/news?sources=hn,lobsters&limit=1")
     );
 
     expect(response.status).toBe(200);

@@ -27,32 +27,3 @@ export function installFetchMock(routes: MockRouteMap): ReturnType<typeof vi.fn>
   vi.stubGlobal("fetch", fetchMock);
   return fetchMock;
 }
-
-export type MemoryKvStore = Map<string, string>;
-
-export function createMemoryKv(initial: MemoryKvStore = new Map()): KVNamespace {
-  const store = new Map(initial);
-
-  return {
-    get: vi.fn(async (key: string, type?: "text" | "json" | "arrayBuffer" | "stream") => {
-      const value = store.get(key);
-      if (value === undefined) {
-        return null;
-      }
-
-      if (type === "json") {
-        return JSON.parse(value);
-      }
-
-      return value;
-    }),
-    put: vi.fn(async (key: string, value: string) => {
-      store.set(key, value);
-    }),
-    delete: vi.fn(async (key: string) => {
-      store.delete(key);
-    }),
-    list: vi.fn(async () => ({ keys: [], list_complete: true, cacheStatus: null })),
-    getWithMetadata: vi.fn(async () => ({ value: null, metadata: null, cacheStatus: null }))
-  } as unknown as KVNamespace;
-}

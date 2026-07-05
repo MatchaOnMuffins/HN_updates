@@ -2,7 +2,6 @@ export {
   DEFAULT_NEWS_LIMIT,
   MAX_NEWS_LIMIT,
   DEFAULT_NEWS_SOURCES,
-  CACHE_TTL_SECONDS,
   TECHCRUNCH_RSS_URL,
   LOBSTERS_HOTTEST_URL,
   BIORXIV_LATEST_URL
@@ -22,5 +21,4 @@ export type {
 export { listAvailableSources, resolveRequestedSources } from "./feeds/sources.js";
 export { fetchNews } from "./feeds/fetchNews.js";
 export { formatFeedSections, formatNewsItems } from "./feeds/format.js";
-export { buildCacheKey, readCache, writeCache, withCache } from "./feeds/cache.js";
 export { parseRssXml, fetchRssFeed } from "./feeds/rss.js";

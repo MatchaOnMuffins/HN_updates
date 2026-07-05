@@ -1,7 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
-import type { Env } from "./env.js";
 import {
   fetchNews,
   fetchNewsInputSchema,
@@ -57,7 +56,7 @@ async function safeTool(handler: () => Promise<ToolResult>, label = "Hacker News
   }
 }
 
-export function registerNewsTools(server: McpServer, env: Env): void {
+export function registerNewsTools(server: McpServer): void {
   server.tool(
     "fetch_news",
     "Fetch and combine news from Hacker News, TechCrunch, Lobsters, bioRxiv, and custom RSS feeds.",
@@ -71,17 +70,14 @@ export function registerNewsTools(server: McpServer, env: Env): void {
     },
     ({ sources, rss_urls, limit, offset, query, domain }) =>
       safeTool(async () => {
-        const result = await fetchNews(
-          {
-            sources,
-            rssUrls: rss_urls,
-            limit,
-            offset,
-            query,
-            domain
-          },
-          env.NEWS_CACHE
-        );
+        const result = await fetchNews({
+          sources,
+          rssUrls: rss_urls,
+          limit,
+          offset,
+          query,
+          domain
+        });
 
         return textResult(formatFeedSections(result.items, result.sources), {
           source: "multi-source-news",

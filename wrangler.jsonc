@@ -9,12 +9,5 @@
       "pattern": "news.matchaonmuffins.dev",
       "custom_domain": true
     }
-  ],
-  "kv_namespaces": [
-    {
-      "binding": "NEWS_CACHE",
-      "id": "00000000000000000000000000000001",
-      "preview_id": "00000000000000000000000000000002"
-    }
   ]
 }
