@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const newsSourceSchema = z.enum(["hn", "techcrunch", "lobsters", "biorxiv", "rss"]);
+export const newsSourceSchema = z.enum(["hn", "techcrunch", "lobsters", "biorxiv", "arxiv", "rss"]);
 
 export const fetchNewsInputSchema = z.object({
   sources: z.array(newsSourceSchema).optional().describe("News sources to fetch. Defaults to Hacker News."),

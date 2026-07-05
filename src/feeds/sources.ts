@@ -1,3 +1,4 @@
+import { arxivAdapter } from "./adapters/arxiv.js";
 import { bioRxivAdapter } from "./adapters/biorxiv.js";
 import { hackerNewsAdapter } from "./adapters/hackerNews.js";
 import { lobstersAdapter } from "./adapters/lobsters.js";
@@ -9,7 +10,8 @@ const BUILTIN_ADAPTERS: Record<Exclude<NewsSourceId, "rss">, FeedAdapter> = {
   hn: hackerNewsAdapter,
   techcrunch: techCrunchAdapter,
   lobsters: lobstersAdapter,
-  biorxiv: bioRxivAdapter
+  biorxiv: bioRxivAdapter,
+  arxiv: arxivAdapter
 };
 
 export function getBuiltinAdapter(source: NewsSourceId): FeedAdapter {
@@ -26,6 +28,7 @@ export function listAvailableSources(): FeedSourceMeta[] {
     techCrunchAdapter.meta,
     lobstersAdapter.meta,
     bioRxivAdapter.meta,
+    arxivAdapter.meta,
     rssAdapterTemplate.meta
   ];
 }
