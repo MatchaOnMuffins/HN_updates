@@ -4,7 +4,8 @@ export {
   DEFAULT_NEWS_SOURCES,
   TECHCRUNCH_RSS_URL,
   LOBSTERS_HOTTEST_URL,
-  BIORXIV_LATEST_URL
+  BIORXIV_LATEST_URL,
+  ARXIV_LATEST_URL
 } from "./feeds/constants.js";
 export { fetchNewsInputSchema, newsSourceSchema } from "./feeds/schemas.js";
 export type { FetchNewsInput } from "./feeds/schemas.js";

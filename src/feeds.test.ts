@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
+  ARXIV_LATEST_URL,
   BIORXIV_LATEST_URL,
   LOBSTERS_HOTTEST_URL,
   TECHCRUNCH_RSS_URL,
@@ -43,6 +44,21 @@ const CUSTOM_RSS = `<?xml version="1.0" encoding="UTF-8"?>
     </item>
   </channel>
 </rss>`;
+
+const ARXIV_ATOM = `<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <entry>
+    <id>http://arxiv.org/abs/2401.00001v1</id>
+    <updated>2024-01-04T00:00:00Z</updated>
+    <published>2024-01-04T00:00:00Z</published>
+    <title>Efficient Systems for Agents</title>
+    <summary>New methods for reliable AI agents.</summary>
+    <author>
+      <name>Ada Lovelace</name>
+    </author>
+    <link href="http://arxiv.org/abs/2401.00001v1" rel="alternate" type="text/html"/>
+  </entry>
+</feed>`;
 
 function installNewsFetchMock(): ReturnType<typeof installFetchMock> {
   return installFetchMock({
@@ -92,6 +108,7 @@ function installNewsFetchMock(): ReturnType<typeof installFetchMock> {
         }
       ]
     },
+    [ARXIV_LATEST_URL]: ARXIV_ATOM,
     "https://example.com/custom-feed.xml": CUSTOM_RSS
   });
 }
@@ -145,20 +162,27 @@ describe("fetchNews", () => {
     expect(result.items.map((item: { source: string }) => item.source)).toEqual(["hn", "lobsters"]);
   });
 
-  it("fetches TechCrunch, Lobsters, bioRxiv, and custom RSS feeds", async () => {
+  it("fetches TechCrunch, Lobsters, bioRxiv, arXiv, and custom RSS feeds", async () => {
     installNewsFetchMock();
 
     const result = await fetchNews({
-      sources: ["techcrunch", "lobsters", "biorxiv"],
+      sources: ["techcrunch", "lobsters", "biorxiv", "arxiv"],
       rssUrls: ["https://example.com/custom-feed.xml"],
       limit: 1
     });
 
-    expect(result.sources).toEqual(["techcrunch", "lobsters", "biorxiv", "rss:https://example.com/custom-feed.xml"]);
+    expect(result.sources).toEqual([
+      "techcrunch",
+      "lobsters",
+      "biorxiv",
+      "arxiv",
+      "rss:https://example.com/custom-feed.xml"
+    ]);
     expect(result.items).toMatchObject([
       { source: "techcrunch", title: "Cloud startup raises funding" },
       { source: "lobsters", title: "Lobsters story", score: 25 },
       { source: "biorxiv", title: "A bioRxiv preprint", summary: "Important biology findings." },
+      { source: "arxiv", title: "Efficient Systems for Agents", author: "Ada Lovelace" },
       { source: "rss:https://example.com/custom-feed.xml", title: "Custom feed headline" }
     ]);
   });
@@ -182,7 +206,14 @@ describe("listAvailableSources", () => {
   it("includes all built-in and custom RSS sources", () => {
     const sources = listAvailableSources();
 
-    expect(sources.map((source: { id: string }) => source.id)).toEqual(["hn", "techcrunch", "lobsters", "biorxiv", "rss"]);
+    expect(sources.map((source: { id: string }) => source.id)).toEqual([
+      "hn",
+      "techcrunch",
+      "lobsters",
+      "biorxiv",
+      "arxiv",
+      "rss"
+    ]);
   });
 });
 
@@ -194,7 +225,8 @@ describe("GET /sources", () => {
     await expect(response.json()).resolves.toMatchObject({
       sources: expect.arrayContaining([
         expect.objectContaining({ id: "hn", name: "Hacker News" }),
-        expect.objectContaining({ id: "lobsters", name: "Lobsters" })
+        expect.objectContaining({ id: "lobsters", name: "Lobsters" }),
+        expect.objectContaining({ id: "arxiv", name: "arXiv" })
       ])
     });
   });

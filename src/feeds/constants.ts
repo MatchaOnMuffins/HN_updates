@@ -5,3 +5,5 @@ export const DEFAULT_NEWS_SOURCES = ["hn"] as const;
 export const TECHCRUNCH_RSS_URL = "https://techcrunch.com/feed/";
 export const LOBSTERS_HOTTEST_URL = "https://lobste.rs/hottest.json";
 export const BIORXIV_LATEST_URL = "https://api.biorxiv.org/details/biorxiv/latest/0";
+export const ARXIV_LATEST_URL =
+  "https://export.arxiv.org/api/query?search_query=cat:cs.AI+OR+cat:cs.LG+OR+cat:cs.CL+OR+cat:cs.CV+OR+cat:cs.CR+OR+cat:cs.SE+OR+cat:cs.DC&sortBy=submittedDate&sortOrder=descending&start=0&max_results=50";

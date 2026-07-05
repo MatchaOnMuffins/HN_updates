@@ -59,7 +59,7 @@ async function safeTool(handler: () => Promise<ToolResult>, label = "Hacker News
 export function registerNewsTools(server: McpServer): void {
   server.tool(
     "fetch_news",
-    "Fetch and combine news from Hacker News, TechCrunch, Lobsters, bioRxiv, and custom RSS feeds.",
+    "Fetch and combine news from Hacker News, TechCrunch, Lobsters, bioRxiv, arXiv, and custom RSS feeds.",
     {
       sources: fetchNewsInputSchema.shape.sources,
       rss_urls: fetchNewsInputSchema.shape.rss_urls,

@@ -1,4 +1,4 @@
-export type NewsSourceId = "hn" | "techcrunch" | "lobsters" | "biorxiv" | "rss";
+export type NewsSourceId = "hn" | "techcrunch" | "lobsters" | "biorxiv" | "arxiv" | "rss";
 
 export type NewsItem = {
   id: string;
